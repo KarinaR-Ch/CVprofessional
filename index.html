@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows Desktop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e5799 0%, #207cca 100%);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Desktop Background */
+        .wallpaper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://raw.githubusercontent.com/KarinaR-Ch/CVprofessional/refs/heads/main/classic-windows-xp-desktop-wallpapers-v0-8im9jleqwbxb1.webp');
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+        }
+
+        /* Desktop Icons */
+        .desktop-icons {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 80px);
+            gap: 15px;
+        }
+
+        .icon {
+            width: 70px;
+            height: 70px;
+            margin: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 10px;
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .icon.selected {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .icon-img {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        /* Цветные значки */
+        .icon[data-app="recycle"] .icon-img {
+            color: white; /* Корзина белая */
+        }
+
+        .icon[data-app="chrome"] .icon-img {
+            /* Изображение Google Chrome */
+            background-image: url('https://raw.githubusercontent.com/KarinaR-Ch/CVprofessional/refs/heads/main/Google_Chrome_icon_(February_2022).svg.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .icon[data-app="chrome"] .icon-img i {
+            display: none; /* Скрыть иконку Font Awesome */
+        }
+
+        .icon[data-app="pdf"] .icon-img {
+            color: #F40F02; /* PDF красный */
+        }
+
+        .icon-text {
+            color: white;
+            font-size: 12px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            word-break: break-word;
+        }
+
+        /* Taskbar */
+        .taskbar {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            height: 48px;
+            width: 90%;
+            max-width: 700px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .start-button {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .start-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .taskbar-apps {
+            display: flex;
+            gap: 5px;
+            margin-left: 15px;
+            flex: 1;
+        }
+
+        .taskbar-app {
+            padding: 8px 12px;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            position: relative;
+            padding-right: 25px;
+        }
+
+        .taskbar-app.active {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .taskbar-app:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s, background 0.2s;
+        }
+
+        .taskbar-app:hover .close-btn {
+            opacity: 1;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .system-tray {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+            color: white;
+        }
+
+        .system-icon {
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .system-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .time {
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .time:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Start Menu */
+        .start-menu {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(40px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .start-menu-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .start-menu-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .pinned-apps {
+            width: 70%;
+            padding: 20px;
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .recommended {
+            width: 30%;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .app-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .app-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #0067c0;
+        }
+
+        .app-name {
+            font-size: 12px;
+            text-align: center;
+            color: #000;
+        }
+
+        .recommended-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .recommended-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .recommended-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .recommended-icon {
+            font-size: 18px;
+            color: #0067c0;
+        }
+
+        .recommended-name {
+            font-size: 13px;
+            color: #000;
+        }
+
+        .start-menu-footer {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.03);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .power-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .power-option {
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+        }
+
+        .power-option:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Widgets */
+        .widgets {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .widget {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .weather-icon {
+            font-size: 32px;
+        }
+
+        .weather-temp {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .calendar-widget table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .calendar-widget th, .calendar-widget td {
+            text-align: center;
+            padding: 5px;
+            font-size: 12px;
+        }
+
+        .calendar-widget .today {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 8px;
+            padding: 5px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 1000;
+        }
+
+        .context-menu-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .context-menu-item:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.1);
+            margin: 5px 0;
+        }
+
+        /* Recycle Bin Window */
+        .window {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .window-header {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .window-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .window-control {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .close {
+            background: #ff5f57;
+        }
+
+        .minimize {
+            background: #ffbd2e;
+        }
+
+        .maximize {
+            background: #28ca42;
+        }
+
+        .window-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #888;
+        }
+
+        .empty-text {
+            font-size: 18px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Desktop Background -->
+    <div class="wallpaper"></div>
+    
+    <!-- Widgets -->
+    <div class="widgets">
+        <div class="widget weather-widget">
+            <div class="weather-icon">☀️</div>
+            <div>
+                <div class="weather-temp">28°C</div>
+                <div>Athens</div>
+            </div>
+        </div>
+        <div class="widget calendar-widget">
+            <div class="widget-header">
+                <span>June 2023</span>
+                <span>Mon-Sun</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td></td><td></td><td></td><td>1</td><td>2</td><td>3</td><td>4</td>
+                    </tr>
+                    <tr>
+                        <td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td>
+                    </tr>
+                    <tr>
+                        <td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td class="today">17</td><td>18</td>
+                    </tr>
+                    <tr>
+                        <td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td>
+                    </tr>
+                    <tr>
+                        <td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td></td><td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Desktop Icons -->
+    <div class="desktop-icons">
+        <div class="icon" onclick="openRecycleBin()" data-app="recycle">
+            <div class="icon-img"><i class="fas fa-trash"></i></div>
+            <div class="icon-text">Recycle Bin</div>
+        </div>
+        <div class="icon" onclick="openApp('Google Chrome')" data-app="chrome">
+            <div class="icon-img"><i class="fab fa-chrome"></i></div>
+            <div class="icon-text">Google Chrome</div>
+        </div>
+        <div class="icon" onclick="openApp('CV Repinska-Churkina Karina')" data-app="pdf">
+            <div class="icon-img"><i class="fas fa-file-pdf"></i></div>
+            <div class="icon-text">CV Repinska-Churkina Karina</div>
+        </div>
+    </div>
+
+    <!-- Taskbar -->
+    <div class="taskbar">
+        <button class="start-button" onclick="toggleStartMenu()">
+            <i class="fab fa-windows"></i>
+        </button>
+        <div class="taskbar-apps" id="taskbarApps">
+            <!-- Apps will be added here -->
+        </div>
+        <div class="system-tray">
+            <div class="system-icon">
+                <i class="fas fa-wifi"></i>
+            </div>
+            <div class="system-icon">
+                <i class="fas fa-volume-up"></i>
+            </div>
+            <div class="system-icon">
+                <i class="fas fa-battery-three-quarters"></i>
+            </div>
+            <div class="time" id="time"></div>
+        </div>
+    </div>
+
+    <!-- Start Menu -->
+    <div class="start-menu" id="startMenu">
+        <div class="start-menu-header">
+            <div class="user-profile">
+                <div class="user-avatar">KR</div>
+                <div>Karina Repinska-Churkina</div>
+            </div>
+        </div>
+        <div class="start-menu-content">
+            <div class="pinned-apps">
+                <div class="section-title">Pinned</div>
+                <div class="apps-grid">
+                    <div class="app-item" onclick="openApp('Google Chrome')">
+                        <div class="app-icon"><i class="fab fa-chrome"></i></div>
+                        <div class="app-name">Chrome</div>
+                    </div>
+                    <div class="app-item" onclick="openApp('File Explorer')">
+                        <div class="app-icon"><i class="fas fa-folder"></i></div>
+                        <div class="app-name">File Explorer</div>
+                    </div>
+                    <div class="app-item" onclick="openApp('Microsoft Store')">
+                        <div class="app-icon"><i class="fas fa-store"></i></div>
+                        <div class="app-name">Store</div>
+                    </div>
+                    <div class="app-item" onclick="openApp('Mail')">
+                        <div class="app-icon"><i class="fas fa-envelope"></i></div>
+                        <div class="app-name">Mail</div>
+                    </div>
+                    <div class="app-item" onclick="openApp('Calendar')">
+                        <div class="app-icon"><i class="fas fa-calendar"></i></div>
+                        <div class="app-name">Calendar</div>
+                    </div>
+                    <div class="app-item" onclick="openApp('Photos')">
+                        <div class="app-icon"><i class="fas fa-images"></i></div>
+                        <div class="app-name">Photos</div>
+                    </div>
+                    <div class="app-item" onclick="openApp('Settings')">
+                        <div class="app-icon"><i class="fas fa-cog"></i></div>
+                        <div class="app-name">Settings</div>
+                    </div>
+                    <div class="app-item" onclick="openApp('Calculator')">
+                        <div class="app-icon"><i class="fas fa-calculator"></i></div>
+                        <div class="app-name">Calculator</div>
+                    </div>
+                    <div class="app-item" onclick="openApp('Notepad')">
+                        <div class="app-icon"><i class="fas fa-sticky-note"></i></div>
+                        <div class="app-name">Notepad</div>
+                    </div>
+                </div>
+            </div>
+            <div class="recommended">
+                <div class="section-title">Recommended</div>
+                <div class="recommended-list">
+                    <div class="recommended-item" onclick="openApp('CV Repinska-Churkina Karina')">
+                        <div class="recommended-icon"><i class="fas fa-file-pdf"></i></div>
+                        <div class="recommended-name">CV Repinska-Churkina Karina</div>
+                    </div>
+                    <div class="recommended-item" onclick="openApp('Document1')">
+                        <div class="recommended-icon"><i class="fas fa-file-word"></i></div>
+                        <div class="recommended-name">Report.docx</div>
+                    </div>
+                    <div class="recommended-item" onclick="openApp('Spreadsheet1')">
+                        <div class="recommended-icon"><i class="fas fa-file-excel"></i></div>
+                        <div class="recommended-name">Budget.xlsx</div>
+                    </div>
+                    <div class="recommended-item" onclick="openApp('Presentation1')">
+                        <div class="recommended-icon"><i class="fas fa-file-powerpoint"></i></div>
+                        <div class="recommended-name">Presentation.pptx</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="start-menu-footer">
+            <div class="power-options">
+                <div class="power-option">
+                    <i class="fas fa-user"></i> Account
+                </div>
+                <div class="power-option">
+                    <i class="fas fa-cog"></i> Settings
+                </div>
+            </div>
+            <div class="power-options">
+                <div class="power-option" onclick="shutdown()">
+                    <i class="fas fa-power-off"></i> Shut down
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recycle Bin Window -->
+    <div class="window" id="recycleBinWindow">
+        <div class="window-header">
+            <div class="window-title">
+                <i class="fas fa-trash"></i> Recycle Bin
+            </div>
+            <div class="window-controls">
+                <div class="window-control minimize"></div>
+                <div class="window-control maximize"></div>
+                <div class="window-control close" onclick="closeRecycleBin()"></div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="empty-icon">
+                <i class="fas fa-trash"></i>
+            </div>
+            <div class="empty-text">Recycle Bin is empty</div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="createNewFolder()">
+            <i class="fas fa-folder-plus"></i> New Folder
+        </div>
+        <div class="context-menu-item">
+            <i class="fas fa-file"></i> New Document
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item">
+            <i class="fas fa-desktop"></i> Display Settings
+        </div>
+        <div class="context-menu-item">
+            <i class="fas fa-palette"></i> Personalize
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item">
+            <i class="fas fa-sync"></i> Refresh
+        </div>
+    </div>
+
+    <script>
+        // Update time
+        function updateTime() {
+            const timeElement = document.getElementById('time');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            timeElement.textContent = timeString;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Toggle Start Menu
+        function toggleStartMenu() {
+            const menu = document.getElementById('startMenu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // Close menus when clicking outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('startMenu');
+            const startButton = document.querySelector('.start-button');
+            
+            if (!menu.contains(e.target) && e.target !== startButton && !startButton.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+            
+            // Close context menu
+            const contextMenu = document.getElementById('contextMenu');
+            if (!contextMenu.contains(e.target)) {
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        // Open applications
+        function openApp(appName) {
+            const taskbarApps = document.getElementById('taskbarApps');
+            
+            // Check if app is already open
+            let existingApp = Array.from(taskbarApps.children).find(app => {
+                const nameElement = app.querySelector('.app-name');
+                return nameElement && nameElement.textContent === appName;
+            });
+            
+            if (!existingApp) {
+                const appElement = document.createElement('div');
+                appElement.className = 'taskbar-app';
+                appElement.innerHTML = `
+                    <i class="fas fa-${getAppIcon(appName)}"></i>
+                    <span class="app-name">${appName}</span>
+                    <span class="close-btn" onclick="closeApp(this.parentNode)">×</span>
+                `;
+                
+                appElement.addEventListener('click', (e) => {
+                    // Don't activate if clicking the close button
+                    if (!e.target.classList.contains('close-btn')) {
+                        // Deactivate all apps
+                        document.querySelectorAll('.taskbar-app').forEach(app => {
+                            app.classList.remove('active');
+                        });
+                        // Activate current app
+                        appElement.classList.add('active');
+                    }
+                });
+                
+                taskbarApps.appendChild(appElement);
+            } else {
+                // Activate existing app
+                document.querySelectorAll('.taskbar-app').forEach(app => {
+                    app.classList.remove('active');
+                });
+                existingApp.classList.add('active');
+            }
+            
+            // Close Start Menu
+            document.getElementById('startMenu').style.display = 'none';
+            
+            // Show notification
+            console.log(`Application "${appName}" launched!`);
+        }
+
+        // Close application
+        function closeApp(appElement) {
+            appElement.remove();
+        }
+
+        // Get app icon
+        function getAppIcon(appName) {
+            const icons = {
+                'File Explorer': 'folder',
+                'Recycle Bin': 'trash',
+                'Google Chrome': 'chrome',
+                'CV Repinska-Churkina Karina': 'file-pdf',
+                'Microsoft Store': 'store',
+                'Settings': 'cog',
+                'Terminal': 'terminal',
+                'Calculator': 'calculator',
+                'Calendar': 'calendar',
+                'Mail': 'envelope',
+                'Photos': 'images',
+                'Music': 'music',
+                'Videos': 'film',
+                'Games': 'gamepad',
+                'Notepad': 'sticky-note',
+                'Document1': 'file-word',
+                'Spreadsheet1': 'file-excel',
+                'Presentation1': 'file-powerpoint'
+            };
+            return icons[appName] || 'cube';
+        }
+
+        // Open Recycle Bin
+        function openRecycleBin() {
+            document.getElementById('recycleBinWindow').style.display = 'flex';
+            openApp('Recycle Bin');
+        }
+
+        // Close Recycle Bin
+        function closeRecycleBin() {
+            document.getElementById('recycleBinWindow').style.display = 'none';
+        }
+
+        // Shutdown function
+        function shutdown() {
+            if (confirm("Are you sure you want to shut down?")) {
+                document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: black; color: white; font-size: 24px;">Shutting down...</div>';
+                setTimeout(() => {
+                    document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: black; color: white; font-size: 24px;">Computer is off</div>';
+                }, 2000);
+            }
+        }
+
+        // Dragging icons
+        document.querySelectorAll('.icon').forEach(icon => {
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            icon.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - icon.getBoundingClientRect().left;
+                offsetY = e.clientY - icon.getBoundingClientRect().top;
+                
+                // Select icon
+                document.querySelectorAll('.icon').forEach(i => {
+                    i.classList.remove('selected');
+                });
+                icon.classList.add('selected');
+                
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    icon.style.position = 'absolute';
+                    icon.style.left = `${e.clientX - offsetX}px`;
+                    icon.style.top = `${e.clientY - offsetY}px`;
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+        });
+
+        // Desktop context menu
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.style.top = `${e.pageY}px`;
+        });
+
+        // Create new folder
+        function createNewFolder() {
+            const desktopIcons = document.querySelector('.desktop-icons');
+            const newFolder = document.createElement('div');
+            newFolder.className = 'icon';
+            newFolder.innerHTML = `
+                <div class="icon-img"><i class="fas fa-folder"></i></div>
+                <div class="icon-text">New Folder</div>
+            `;
+            newFolder.onclick = () => openApp('New Folder');
+            desktopIcons.appendChild(newFolder);
+            
+            // Close context menu
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
